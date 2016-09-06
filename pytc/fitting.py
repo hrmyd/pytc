@@ -12,7 +12,6 @@ import copy, inspect, warnings
 import numpy as np
 import scipy.optimize as optimize
 from matplotlib import pyplot as plt
-import seaborn as sns
 
 class GlobalFit:
     """
@@ -273,18 +272,6 @@ class GlobalFit:
         if len(color_list) < len(self._expt_list_stable_order):
             err = "Number of specified colors is less than number of experiments.\n"
             raise ValueError(err)
-<<<<<<< HEAD
-        
-        for i, expt_name in enumerate(self._experiment_dict.keys()):
-           
-            e = self._experiment_dict[expt_name] 
-            calc = self._call_dq(expt_name,self._fit_param)
-
-            #sns.lmplot(e.mole_ratio, e.heats)
- 
-            plt.plot(e.mole_ratio,e.heats,"o",color=color_list[i])
-            plt.plot(e.mole_ratio,calc,color=color_list[i],linewidth=1.5)
-=======
 
         for i, expt_name in enumerate(self._expt_list_stable_order):
 
@@ -310,7 +297,6 @@ class GlobalFit:
 
             if e.dQ != None:
                 plt.plot(mr,calc,color=color_list[i],linewidth=1.5)
->>>>>>> origin
 
     @property
     def fit_param(self):
