@@ -108,7 +108,10 @@ class ITCModel:
         The parameters for the model.
         """
 
-        return self._param_names
+        try:
+            return self._param_names
+        except AttributeError:
+            return []
 
     # -------------------------------------------------------------------------
     # parameter objects
@@ -130,7 +133,10 @@ class ITCModel:
         Values for each parameter in the model.
         """
 
-        return dict([(p,self._params[p].value) for p in self._param_names])  
+        try:
+            return dict([(p,self._params[p].value) for p in self._param_names])  
+        except AttributeError:
+            return {}
  
 
     def update_values(self,param_values):
@@ -151,7 +157,10 @@ class ITCModel:
         Errors for each parameter in the model.
         """
 
-        return dict([(p,self._params[p].error) for p in self._param_names])  
+        try:
+            return dict([(p,self._params[p].error) for p in self._param_names])  
+        except AttributeError:
+            return {}
  
 
     def update_errors(self,param_errors):
@@ -172,7 +181,10 @@ class ITCModel:
         Guesses for each parameter in the model.
         """
 
-        return dict([(p,self._params[p].guess) for p in self._param_names])  
+        try:
+            return dict([(p,self._params[p].guess) for p in self._param_names]) 
+        except AttributeError:
+            return {}
 
     def update_guesses(self,param_guesses):
         """
@@ -192,7 +204,10 @@ class ITCModel:
         Return parameter ranges.
         """
 
-        return dict([(p,self._params[p].guess_range) for p in self._param_names])  
+        try:
+            return dict([(p,self._params[p].guess_range) for p in self._param_names])  
+        except AttributeError:
+            return {}
 
     def update_guess_ranges(self,param_ranges):
         """
@@ -212,8 +227,11 @@ class ITCModel:
         """
         Return the fixed parameters.
         """
-
-        return dict([(p,self._params[p].fixed) for p in self._param_names])  
+    
+        try:
+            return dict([(p,self._params[p].fixed) for p in self._param_names])  
+        except AttributeError:
+            return {}
 
     def update_fixed(self,fixed_param):
         """
@@ -239,8 +257,11 @@ class ITCModel:
         """
         Return parameter bounds.
         """
-
-        return dict([(p,self._params[p].bounds) for p in self._param_names])  
+    
+        try:
+            return dict([(p,self._params[p].bounds) for p in self._param_names])  
+        except AttributeError:
+            return {}
 
     def update_bounds(self,bounds):
         """
@@ -260,8 +281,11 @@ class ITCModel:
         Return parameter aliases.
         """
 
-        return dict([(p,self._params[p].alias) for p in self._param_names
-                     if self._params[p].alias != None])  
+        try:
+            return dict([(p,self._params[p].alias) for p in self._param_names
+                         if self._params[p].alias != None]) 
+        except AttributeError:
+            return {}
 
     def update_aliases(self,param_alias):
         """
