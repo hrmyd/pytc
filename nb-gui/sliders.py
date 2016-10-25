@@ -1,4 +1,4 @@
-from .. import pytc
+import pytc
 import ipywidgets as widgets
 from IPython.display import display, clear_output
 import pandas as pd
