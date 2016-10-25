@@ -2,6 +2,7 @@ import pytc
 import ipywidgets as widgets
 from IPython.display import display, clear_output
 import glob
+from .sliders import GlobalExp, LocalExp
 
 class ParamCollect():
     def __init__(self, gui, container, fitter):
@@ -89,7 +90,7 @@ class LocalExp(ParamCollect):
             print("no experiment linked")
             
         for i in self._container:
-            if self._exp_id == i[0]._exp_id:
+            if self._exp_id == i._exp_id:
                 self._container.remove(i)
         
         self._exp_box.close()
@@ -168,7 +169,7 @@ class LocalExp(ParamCollect):
         #exp_drop = widgets.Dropdown(options = file_dict, value = 'none')
         #exp_drop.observe(add_exp, 'value')
 
-        self._rm_exp.on_click(self.remove_exp)
+        self._rm_exp.on_click(self.remove_button)
 
         self._exp_box.children = [self._exp_field, self._model_drop, self._rm_exp]
         self._widgets.extend([self._exp_field, self._model_drop, self._rm_exp, self._exp_box])
@@ -230,7 +231,7 @@ class GlobalExp(ParamCollect):
         generate widgets for experiment.
         """
 
-        self._rm_exp.on_click(self.remove_exp)
+        self._rm_exp.on_click(self.remove_button)
 
         self._exp_box.children = [self._name_label, self._rm_exp]
         

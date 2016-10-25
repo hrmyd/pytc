@@ -1,5 +1,7 @@
+import pytc
 import ipywidgets as widgets
 from IPython.display import display, clear_output
+from .exp import LocalExp
 
 class Interface:
     
@@ -15,7 +17,6 @@ class Interface:
     def view_exp(self):
         
         return self._experiments
-
     
     def add_experiment(self,expt):
         """
@@ -31,44 +32,6 @@ class Interface:
         """
         self._fitter.remove_experiment(expt)
         self._experiments.remove(expt)
-        
-    
-    def build_interface(self):
-        """
-        """
-        for l in self._experiments:
-            pass
-        
-        for g in self._global_exp:
-            pass
-    
-        
-    def update_fit(self, val_change):
-        """
-        """
-
-        if val_change['new'] != val_change['old']:
-            self._fitter.fit()
-            self._fitter.plot()
-
-    def _update(self):
-        """
-        """
-                
-        global_param, local_param = self._fitter.fit_param
-        global_error, local_error = self._fitter.fit_error
-        n=0
-
-        for param, error in zip(local_param, local_error):
-            for p, e in zip(param, error):
-                print("{},{}".format(p, n), ': ', param[p], error[e])
-            n+=1
-    
-        for param, error in zip(global_param, global_error):
-            print(param, ': ', param[param], error[error])
-            
-        self._fitter.fit()
-        self._fitter.plot()
 
 
 class FitGUI:
@@ -88,7 +51,6 @@ class FitGUI:
         self._add_exp_field = widgets.Button(description = "Add an Experiment")
         self._rmv_last_field = widgets.Button(description = "Remove Last Experiment")
         self._clear_widget = widgets.Button(description = "Clear")
-        self._update_widget = widgets.Button(description = "Update Fit")
         
         self._global_field.layout.width = '100px'
         self._global_add.layout.width = '160px'
@@ -126,7 +88,7 @@ class FitGUI:
 
         glob_var = self._global_field.value
 
-        if glob_var not in global_var and glob_var:
+        if glob_var not in self._global_var and glob_var:
             self._global_var.append(glob_var)
             self._global_field.value = ''
         else:
@@ -136,12 +98,6 @@ class FitGUI:
 
         self._fitter.remove_global(self._global_field.value)
         global_var.remove(self._global_field.value)
-
-    def update_fit(self, b):
-
-        clear_output()
-        self._fitter.fit()
-        self._fitter.plot()
     
     def build_gui(self):
         """
@@ -151,7 +107,6 @@ class FitGUI:
         self._add_exp_field.on_click(self.add_field)
         self._rmv_last_field.on_click(self.rm_last)
         self._clear_widget.on_click(self.clear_exp)
-        self._update_widget.on_click(self.update_fit)
 
         experiments_layout = widgets.Layout(display = "flex", 
                               flex_flow = "row", 
@@ -162,9 +117,9 @@ class FitGUI:
                                layout = experiments_layout)
         #glob_box.layout.margin = "0px 0px 30px 0px"
 
-        experiments = widgets.Box(children = [self._add_exp_field, self._rmv_last_field], 
+        experiments = widgets.Box(children = [self._add_exp_field, self._rmv_last_field, self._clear_widget], 
                                               layout = experiments_layout)
-        parent = widgets.Box(children = [glob_box, self._clear_widget, self._update_widget, experiments])
+        parent = widgets.Box(children = [experiments, glob_box])
 
         display(parent)
         self.add_field(None)
