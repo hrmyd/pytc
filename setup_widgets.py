@@ -22,6 +22,7 @@ class AddExp(QWidget):
 		self._exp_file = None
 		self._shot_start = 1
 		self._exp_list = exp_list
+		self._fitter = exp_list[0]
 
 		self.exp_layout()
 
@@ -81,6 +82,7 @@ class AddExp(QWidget):
 		"""
 		itc_exp = pytc.ITCExperiment(self._exp_file, self._exp_model, self._shot_start)
 		self._exp_list.append(itc_exp)
+		self._fitter.add_experiment(itc_exp)
 		self.close()
 
 class ChooseFitter(QWidget):
