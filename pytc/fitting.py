@@ -269,6 +269,8 @@ class GlobalFit:
         Plot the experimental data and fit results.
         """
 
+        data = {}
+
         if color_list == None:
             N = len(self._expt_list_stable_order)
             color_list = [plt.cm.brg(i/N) for i in range(N)]
@@ -297,10 +299,14 @@ class GlobalFit:
                         heats = heats - e.dilution_heats
                         calc = calc - e.dilution_heats
 
-            plt.plot(mr,heats,"o",color=color_list[i])
+            #plt.plot(mr,heats,"o",color=color_list[i])
+            data[expt_name] = [mr, heats]
 
             if e.dQ != None:
+                data[expt_name].append(calc)
                 plt.plot(mr,calc,color=color_list[i],linewidth=1.5)
+
+        return data
 
     @property
     def fit_param(self):
