@@ -25,13 +25,12 @@ class Splitter(QWidget):
 	def layout(self):
 		"""
 		"""
-
 		main_frame = QHBoxLayout(self)
 
-		exp_box = Experiments(self._exp_list)
+		exp_box = AllExp(self._exp_list)
 
-		plot_frame = QFrame(self)
-		plot_frame.setFrameShape(QFrame.StyledPanel)
+		plot_frame = PlotBox(self._exp_list)
+		#plot_frame.setFrameShape(QFrame.StyledPanel)
 
 		fit_widgets = QFrame(self)
 		fit_widgets.setFrameShape(QFrame.StyledPanel)
@@ -48,10 +47,6 @@ class Splitter(QWidget):
 
 		main_frame.addWidget(splitter2)
 		self.setLayout(main_frame)
-
-		#plot = Plot(parent = self, width = 4, height = 5, dpi = 100, fitter = pytc.GlobalFit())
-		#plot_box.addWidget(plot)
-
 
 class Main(QMainWindow):
 	"""
