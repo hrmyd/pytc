@@ -6,15 +6,14 @@ import pandas as pd
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
 from matplotlib.figure import Figure
 import matplotlib.pyplot as plt
+import seaborn
 
 class Plot(FigureCanvas):
 	"""
 	create a plot widget
 	"""
 
-	def __init__(self, parent = None, width = 5, height = 4, dpi = 100, fitter = None):
-
-		self._fitter = fitter
+	def __init__(self, parent = None, width = 6, height = 6, dpi = 80):
 
 		fig = Figure(figsize = (width, height), dpi = dpi)
 		self.axes = fig.add_subplot(111)
@@ -25,18 +24,18 @@ class Plot(FigureCanvas):
 		FigureCanvas.setSizePolicy(self, QSizePolicy.Expanding, QSizePolicy.Expanding)
 		FigureCanvas.updateGeometry(self)
 
-		self.plot()
+	def plot(self, fitter):
 
-	def plot(self):
+		self.axes.clear()
 
-		data = self._fitter.plot()
+		data = fitter.plot()
 
 		for e in data:
 			mr, heats, calc = data[e]
 
 			ax = self.figure.add_subplot(111)
-			ax.plot(mr,heats,"o")
 
+			ax.plot(mr,heats,"o")
 			ax.plot(mr,calc,linewidth=1.5)
 
 			self.draw()
@@ -56,9 +55,13 @@ class PlotBox(QWidget):
 	def layout(self):
 		main_layout = QVBoxLayout(self)
 
-		self._plot_layout = QVBoxLayout()
+		plot_layout = QVBoxLayout()
 		plot_frame = QFrame()
-		plot_frame.setLayout(self._plot_layout)
+		plot_frame.setLayout(plot_layout)
+
+
+		self._plot_figure = Plot()
+		plot_layout.addWidget(self._plot_figure)
 
 		main_layout.addWidget(plot_frame)
 		
@@ -67,11 +70,30 @@ class PlotBox(QWidget):
 		main_layout.addWidget(gen_plot)
 
 	def update_plot(self):
-		if self._exp_list:
-			self._fitter = self._exp_list[0]
 
-			plot_figure = Plot(fitter = self._fitter)
-			self._plot_layout.addWidget(plot_figure)
+		if self._exp_list:
+			self._fitter = self._exp_list["Fitter"]
+			self._plot_figure.plot(self._fitter)
+			
+class SlidersExpanded(QWidget):
+	"""
+	extra slider options pop-up
+	"""
+
+	def __init__(self, exp, fitter):
+		super().__init__()
+
+		self._exp = exp
+		self._fitter = fitter
+
+		self.layout()
+
+	def layout(self):
+
+		main_layout = QGridLayout(self)
+
+		# update bounds, link???
+
 
 class Sliders(QWidget):
 	"""
@@ -101,9 +123,13 @@ class Sliders(QWidget):
 		self._fix.stateChanged.connect(self.fix)
 		layout.addWidget(self._fix, 1, 0)
 
-		self._slider = QSlider(Qt.Horizontal, self)
-		self._slider.setFocusPolicy(Qt.NoFocus)
+		exp_range = self._exp.model.param_guess_ranges[self._param_name]
+
+		self._slider = QAbstractSlider(self)
+		self._slider.setOrientation(Qt.Horizontal)
 		self._slider.valueChanged[int].connect(self.update_val)
+		self._slider.setMinimum(exp_range[0])
+		self._slider.setMaximum(exp_range[1])
 		layout.addWidget(self._slider, 1, 1)
 
 		self._fix_int = QLineEdit(self)
@@ -114,11 +140,22 @@ class Sliders(QWidget):
 		self._link = QComboBox(self)
 		self._link.addItem("Unlink")
 		self._link.addItem("Add Global Var")
+
 		for i in self._global_list:
 			self._link.addItem(i)
 
 		self._link.activated[str].connect(self.link_unlink)
 		layout.addWidget(self._link, 1, 3)
+
+		self._expand = QPushButton("...", self)
+		self._expand.clicked.connect(self.expanded)
+		layout.addWidget(self._expand, 1, 4)
+
+	def expanded(self):
+
+		self._more = SlidersExpanded(self._exp, self._fitter)
+		self._more.setGeometry(500, 400, 400, 100)
+		self._more.show()
 
 	def fix(self, state):
 
@@ -136,10 +173,6 @@ class Sliders(QWidget):
 
 			self._fitter.unfix(*[self._param_name], expt = self._exp)
 			print('unfixed')
-
-	#def set_fix(self, value):
-
-		#self._fitter.fix(self._exp, **{self._param_name: int(self._fix_int.text())})
 
 	def update_val(self, value):
 
@@ -203,13 +236,14 @@ class Experiments(QWidget):
 	experiment box widget
 	"""
 
-	def __init__(self, fitter, exp, labels, global_var):
+	def __init__(self, fitter, exp, labels, global_var, exp_list):
 		super().__init__()
 
 		self._exp = exp
 		self._labels = labels
 		self._fitter = fitter
 		self._global_var = global_var
+		self._exp_list = exp_list
 
 		self.layout()
 
@@ -248,15 +282,11 @@ class Experiments(QWidget):
 		stretch.addWidget(remove)
 		main_layout.addLayout(stretch)
 
-
-	def print_exp(self):
-
-		print(self._labels)
-
 	def remove(self):
 
 		 self._fitter.remove_experiment(self._exp)
 		 self._labels.pop(self._exp, None)
+		 self._exp_list.remove(self._exp)
 		 self.close()
 
 	def hide(self):
@@ -278,41 +308,59 @@ class AllExp(QWidget):
 		self._exp_list = exp_list
 		self._labels = {}
 		self._global_var = []
-		self.initGUI()
+		self.layout()
 
-	def initGUI(self):
+	def layout(self):
 
-		layout = QVBoxLayout(self)
+		main_layout = QVBoxLayout(self)
 
 		scroll = QScrollArea(self)
-		layout.addWidget(scroll)
+		#main_layout.addWidget(scroll)
 
 		exp_content = QWidget()
 		self._exp_box = QVBoxLayout(exp_content)
 		scroll.setWidget(exp_content)
 		scroll.setWidgetResizable(True)
 
+		self._param_box = QTextEdit(self)
+		self._param_box.setReadOnly(True)
+		#main_layout.addWidget(self._param_box)
+
+		splitter = QSplitter(Qt.Vertical)
+		splitter.addWidget(scroll)
+		splitter.addWidget(self._param_box)
+		splitter.setSizes([200, 200])
+
+		main_layout.addWidget(splitter)
+
 		gen_experiments = QPushButton("Fit Experiments", self)
 		gen_experiments.clicked.connect(self.add_exp)
-		layout.addWidget(gen_experiments)
+		main_layout.addWidget(gen_experiments)
 
 		print_exp = QPushButton("Print Experiments", self)
 		print_exp.clicked.connect(self.print_exp)
-		layout.addWidget(print_exp)
+		main_layout.addWidget(print_exp)
 
 	def add_exp(self):
 
-		fitter = self._exp_list[0]
+		fitter = self._exp_list["Fitter"]
 
-		for i in self._exp_list[1:]:
-			if i not in self._labels:
-				self._labels[i] = []
-				exp = Experiments(fitter, i, self._labels, self._global_var)
-				self._exp_box.addWidget(exp)
-			else:
-				fitter.fit()
-				print('already in frame')
+		for n, e in self._exp_list.items():
+			if n != "Fitter":
+				if e not in self._labels:
+					self._labels[e] = []
+					exp = Experiments(fitter, e, self._labels, self._global_var, self._exp_list)
+					self._exp_box.addWidget(exp)
+				else:
+					print('already in frame')
 
+		fitter.fit()
+		self.return_param()
+
+	def return_param(self):
+		"""
+		"""
+		self._param_box.append("Parameters!")
 
 	def print_exp(self):
 

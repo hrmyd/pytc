@@ -18,11 +18,10 @@ class AddExp(QWidget):
                         "Single Site Competitor" : pytc.models.SingleSiteCompetitor,
                         "Binding Polynomial" : pytc.models.BindingPolynomial}
 
-		self._exp_model = self._models["Blank"]
 		self._exp_file = None
 		self._shot_start = 1
 		self._exp_list = exp_list
-		self._fitter = exp_list[0]
+		self._fitter = exp_list["Fitter"]
 
 		self.exp_layout()
 
@@ -37,6 +36,8 @@ class AddExp(QWidget):
 		model_select = QComboBox(self)
 		for k, v in self._models.items():
 			model_select.addItem(k)
+
+		self._exp_model = self._models[str(model_select.currentText())]
 
 		model_select.activated[str].connect(self.model_select)
 
@@ -74,14 +75,15 @@ class AddExp(QWidget):
 		"""
 		file_name, _ = QFileDialog.getOpenFileName(self, "Select a file...", "", filter="DH Files (*.DH)")
 		self._exp_file = str(file_name)
-		self._exp_label.setText(file_name.split("/")[-1])
+		self._exp_name = file_name.split("/")[-1]
+		self._exp_label.setText(self._exp_name)
 		#print(self._exp_file, type(self._exp_file))
 
 	def generate(self):
 		"""
 		"""
 		itc_exp = pytc.ITCExperiment(self._exp_file, self._exp_model, self._shot_start)
-		self._exp_list.append(itc_exp)
+		self._exp_list[self._exp_name] = itc_exp
 		self._fitter.add_experiment(itc_exp)
 		self.close()
 
@@ -92,7 +94,6 @@ class ChooseFitter(QWidget):
 		self._fitter_choose = {"Global" : pytc.GlobalFit(),
                         "Proton Linked" : pytc.ProtonLinked()}
 
-		self._fitter = self._fitter_choose["Global"]
 		self._exp_list = exp_list
 
 		self.fitter_layout()
@@ -108,6 +109,8 @@ class ChooseFitter(QWidget):
 		fitter_select = QComboBox(self)
 		for k, v in self._fitter_choose.items():
 			fitter_select.addItem(k)
+
+		self._fitter = self._fitter_choose[str(fitter_select.currentText())]
 
 		fitter_select.activated[str].connect(self.fitter_select)
 
@@ -125,8 +128,10 @@ class ChooseFitter(QWidget):
 		"""
 		"""
 		if len(self._exp_list) == 0:
-			self._exp_list.append(self._fitter)
+			self._exp_list["Fitter"] = self._fitter
 		else:
+			self._exp_list = {}
+			self._exp_list["Fitter"] = self._fitter
 			print("start over")
 
 		self.close()

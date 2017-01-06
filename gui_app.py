@@ -28,24 +28,14 @@ class Splitter(QWidget):
 		main_frame = QHBoxLayout(self)
 
 		exp_box = AllExp(self._exp_list)
-
 		plot_frame = PlotBox(self._exp_list)
-		#plot_frame.setFrameShape(QFrame.StyledPanel)
 
-		fit_widgets = QFrame(self)
-		fit_widgets.setFrameShape(QFrame.StyledPanel)
+		splitter = QSplitter(Qt.Horizontal)
+		splitter.addWidget(plot_frame)
+		splitter.addWidget(exp_box)
+		splitter.setSizes([200, 200])
 
-		splitter1 = QSplitter(Qt.Horizontal)
-		splitter1.addWidget(exp_box)
-		splitter1.addWidget(plot_frame)
-		splitter1.setSizes([200, 200])
-
-		splitter2 = QSplitter(Qt.Vertical)
-		splitter2.addWidget(splitter1)
-		splitter2.addWidget(fit_widgets)
-		#splitter2.setSizes([10])
-
-		main_frame.addWidget(splitter2)
+		main_frame.addWidget(splitter)
 		self.setLayout(main_frame)
 
 class Main(QMainWindow):
@@ -54,7 +44,7 @@ class Main(QMainWindow):
 	def __init__(self):
 		super().__init__()
 
-		self._exp_list = []
+		self._exp_list = {}
 
 		self.menu()
 		self.new_exp()
@@ -84,7 +74,7 @@ class Main(QMainWindow):
 		new_exp.triggered.connect(self.new_exp)
 		file_menu.addAction(new_exp)
 
-		add_exp = QAction("Add", self)
+		add_exp = QAction("Add Experiment", self)
 		add_exp.setShortcut("Ctrl+A")
 		add_exp.triggered.connect(self.add_file)
 		file_menu.addAction(add_exp)
@@ -114,11 +104,13 @@ class Main(QMainWindow):
 		testing, check pytc experiments loading
 		"""
 
-		print(self._exp_list[1:])
+		for n, e in self._exp_list.items():
+			if n != "Fitter":
+				print(n, ": ", e)
 
 	def print_fitter(self):
 
-		print(self._exp_list[0])
+		print(self._exp_list["Fitter"])
 
 	def add_file(self):
 		"""

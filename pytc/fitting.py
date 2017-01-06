@@ -304,7 +304,7 @@ class GlobalFit:
 
             if e.dQ != None:
                 data[expt_name].append(calc)
-                plt.plot(mr,calc,color=color_list[i],linewidth=1.5)
+                #plt.plot(mr,calc,color=color_list[i],linewidth=1.5)
 
         return data
 
